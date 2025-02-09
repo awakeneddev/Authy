@@ -38,11 +38,13 @@ export async function POST(req: NextRequest) {
         { expiresIn: "1h" }
       );
 
-      (await cookies()).set({
+      const cookieStore = await cookies();
+
+      cookieStore.set({
         name: "Authy",
         value: token,
         httpOnly: true,
-        path:'/',
+        path: "/",
         maxAge: 60 * 60 * 1000,
       });
 
