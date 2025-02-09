@@ -1,7 +1,11 @@
 import dbConnect from "@/lib/db";
 import User from "@/models/register";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+
+const secret = process.env.JWT_SECRET;
 
 export async function POST(req: NextRequest) {
   await dbConnect();
@@ -18,6 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (user) {
+      // checking password
       const isMatched = await bcrypt.compare(password, user.password);
       if (!isMatched) {
         NextResponse.json({
@@ -25,6 +30,21 @@ export async function POST(req: NextRequest) {
           message: "Invalid Credentials",
         });
       }
+
+      // generating token
+      const token = jwt.sign(
+        { userId: user.id, username: user.email },
+        secret as string,
+        { expiresIn: "1h" }
+      );
+
+      (await cookies()).set({
+        name: "Authy",
+        value: token,
+        httpOnly: true,
+        path:'/',
+        maxAge: 60 * 60 * 1000,
+      });
 
       return NextResponse.json({
         status: 200,

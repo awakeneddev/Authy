@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Password didn't match" });
 
   try {
-    // Ensure bcrypt receives valid parameters
+    // Ensuring bcrypt receives valid parameters
     const saltRounds = 10;
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
