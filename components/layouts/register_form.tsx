@@ -1,8 +1,9 @@
 "use client";
 import { ArrowRight, Lock, Mail } from "lucide-react";
 import { useState } from "react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 export const RegisterForm = () => {
+  const router = useRouter()
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +27,7 @@ export const RegisterForm = () => {
       if (response.ok) {
         const data = await response.json();
         console.log(data);
-        redirect('/auth/login')
+        router.push('/auth/login')
       } else {
         const errData = await response.json();
         console.log(errData);

@@ -1,9 +1,10 @@
 import dbConnect from "@/lib/db";
 import User from "@/models/register";
+import { errorResponse, successResponse } from "@/utils/api/responseUtils";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 const secret = process.env.JWT_SECRET;
 
@@ -15,20 +16,14 @@ export async function POST(req: NextRequest) {
     const user = await User.findOne({ email });
 
     if (!user) {
-      NextResponse.json({
-        status: 401,
-        message: "Invalid Credentials",
-      });
+      return errorResponse("Invalid Credentials", "Retry", 401);
     }
 
     if (user) {
       // checking password
       const isMatched = await bcrypt.compare(password, user.password);
       if (!isMatched) {
-        NextResponse.json({
-          status: 401,
-          message: "Invalid Credentials",
-        });
+        errorResponse("Invalid Credentials", "Retry", 401);
       }
 
       // generating token
@@ -48,16 +43,9 @@ export async function POST(req: NextRequest) {
         maxAge: 60 * 60 * 1000,
       });
 
-      return NextResponse.json({
-        status: 200,
-        message: "User login successfully",
-      });
+      return successResponse("Logged in successfully", "Welcome Back", 201);
     }
   } catch (error) {
-    return NextResponse.json({
-      status: 500,
-      message: "Internal Server Error",
-      error: (error as Error).message,
-    });
+    return errorResponse("Internal Server Error", error, 501);
   }
 }

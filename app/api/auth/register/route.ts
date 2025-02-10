@@ -1,7 +1,8 @@
 import dbConnect from "@/lib/db";
 import User from "@/models/register";
+import { errorResponse, successResponse } from "@/utils/api/responseUtils";
 import bcrypt from "bcryptjs";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   await dbConnect();
@@ -9,18 +10,16 @@ export async function POST(req: NextRequest) {
   const { name, email, password, confirmPassword } = await req.json();
 
   if (password !== confirmPassword)
-    return NextResponse.json({ status: 401,message: "Password didn't match" });
+    return errorResponse("Password not match", "Invalid Credentials", 400);
 
   try {
-    // Ensuring bcrypt receives valid parameters
-    const saltRounds = 10;
-
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
- 
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
-      return NextResponse.json({ message: "Email already exists" });
+      return errorResponse("Email Already Exists", "Duplicate", 409);
     }
+    // Ensuring bcrypt receives valid parameters
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // new user
     await User.create({
@@ -29,15 +28,8 @@ export async function POST(req: NextRequest) {
       password: hashedPassword,
     });
 
-    return NextResponse.json(
-      { message: "New user registered successfully" },
-      { status: 201 }
-    );
+    return successResponse("New User created successfully", `${name}`, 201);
   } catch (err) {
-    return NextResponse.json({
-      status: 501,
-      message: "Internal Server Error",
-      error: (err as Error).message,
-    });
+    return errorResponse("Internal Server Error", err, 501);
   }
 }
