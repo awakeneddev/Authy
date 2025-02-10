@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const { name, email, password, confirmPassword } = await req.json();
 
   if (password !== confirmPassword)
-    return NextResponse.json({ message: "Password didn't match" });
+    return NextResponse.json({ status: 401,message: "Password didn't match" });
 
   try {
     // Ensuring bcrypt receives valid parameters
